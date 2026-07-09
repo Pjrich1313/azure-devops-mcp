@@ -192,11 +192,35 @@ For example, use `"-d", "core", "work", "work-items"` to load only Work Item rel
 }
 ```
 
-Domains that are available are: `core`, `work`, `work-items`, `search`, `test-plans`, `repositories`, `wiki`, `pipelines`, `advanced-security`
+Domains that are available are: `core`, `coins`, `work`, `work-items`, `search`, `test-plans`, `repositories`, `wiki`, `pipelines`, `advanced-security`
 
 We recommend that you always enable `core` tools so that you can fetch project level information.
 
 > By default all domains are loaded
+
+### Coins domain (Pamela Menopool)
+
+The `coins` domain adds cryptocurrency balance tools for the Pamela Menopool project workflows:
+
+- `get_coinbase_balance` (uses Coinbase Exchange API credentials)
+- `get_ethereum_balance` (ETH and optional ERC-20 balances)
+- `get_bitcoin_balance` (BTC balance from a public endpoint)
+- `query_all_balances` (aggregates all configured sources)
+
+Configuration via environment variables:
+
+- `COINBASE_API_KEY`
+- `COINBASE_API_SECRET`
+- `COINBASE_API_PASSPHRASE`
+- `COINBASE_API_BASE_URL` (optional, default: `https://api.exchange.coinbase.com`)
+- `ETHEREUM_RPC_URL` (optional, default: `https://ethereum-rpc.publicnode.com`)
+- `BITCOIN_API_BASE_URL` (optional, default: `https://blockstream.info/api`)
+
+Example prompts:
+
+- `Get Pamela Menopool Coinbase balances`
+- `Get ETH balance for 0x... and ERC-20 balances for token contracts [...]`
+- `Query all balances for Pamela Menopool with ETH address 0x... and BTC address bc1...`
 
 ## 🐥 Project and Team Defaults (local)
 

@@ -9,6 +9,10 @@
 | Core              | [mcp_ado_core_list_projects](#mcp_ado_core_list_projects)                                                 | List all projects in the organization                             |
 | Core              | [mcp_ado_core_list_project_teams](#mcp_ado_core_list_project_teams)                                       | List teams within a project                                       |
 | Core              | [mcp_ado_core_get_identity_ids](#mcp_ado_core_get_identity_ids)                                           | Retrieve identity IDs by search filter                            |
+| Coins             | [mcp_ado_get_coinbase_balance](#mcp_ado_get_coinbase_balance)                                             | Get Coinbase balances and holdings                                |
+| Coins             | [mcp_ado_get_ethereum_balance](#mcp_ado_get_ethereum_balance)                                             | Get ETH and optional ERC-20 balances                              |
+| Coins             | [mcp_ado_get_bitcoin_balance](#mcp_ado_get_bitcoin_balance)                                               | Get BTC balance for a Bitcoin address                             |
+| Coins             | [mcp_ado_query_all_balances](#mcp_ado_query_all_balances)                                                 | Aggregate Coinbase, Ethereum, and Bitcoin balances                |
 | Pipelines         | [mcp_ado_pipelines_create_pipeline](#mcp_ado_pipelines_create_pipeline)                                   | Create a new pipeline with YAML configuration                     |
 | Pipelines         | [mcp_ado_pipelines_get_builds](#mcp_ado_pipelines_get_builds)                                             | Retrieve a list of builds with optional filters                   |
 | Pipelines         | [mcp_ado_pipelines_get_build_status](#mcp_ado_pipelines_get_build_status)                                 | Get the status of a specific build                                |
@@ -131,6 +135,38 @@ Retrieve Azure DevOps identity IDs for a provided search filter.
 
 - **Required**: `searchFilter`
 - **Optional**: None
+
+## Coins
+
+Pamela Menopool branded cryptocurrency balance tools.
+
+### mcp_ado_get_coinbase_balance
+
+Get Coinbase account balances and holdings.
+
+- **Required**: None (credentials via `COINBASE_API_KEY`, `COINBASE_API_SECRET`, `COINBASE_API_PASSPHRASE`)
+- **Optional**: `baseUrl`, `includeZeroBalances`
+
+### mcp_ado_get_ethereum_balance
+
+Get ETH and optional ERC-20 balances for an Ethereum address.
+
+- **Required**: `address`
+- **Optional**: `rpcUrl`, `tokenContracts`
+
+### mcp_ado_get_bitcoin_balance
+
+Get BTC balance for a Bitcoin address.
+
+- **Required**: `address`
+- **Optional**: `apiBaseUrl`, `includeMempool`
+
+### mcp_ado_query_all_balances
+
+Aggregate Coinbase, Ethereum, and Bitcoin balances for Pamela Menopool workflows.
+
+- **Required**: None
+- **Optional**: `includeCoinbase`, `ethereumAddress`, `ethereumTokenContracts`, `bitcoinAddress`, `includeBitcoinMempool`, `coinbaseBaseUrl`, `ethereumRpcUrl`, `bitcoinApiBaseUrl`, `includeZeroCoinbaseBalances`
 
 ## Pipelines
 

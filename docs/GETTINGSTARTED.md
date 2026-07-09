@@ -509,7 +509,7 @@ Replace `<your-org>` with your Azure DevOps organization name (e.g. `contoso`).
 > "command": ["npx", "-y", "@azure-devops/mcp", "<your-org>", "-d", "core", "work", "work-items"]
 > ```
 >
-> Available domains: `core`, `work`, `work-items`, `repositories`, `wiki`, `pipelines`, `search`, `test-plans`, `advanced-security`
+> Available domains: `core`, `coins`, `work`, `work-items`, `repositories`, `wiki`, `pipelines`, `search`, `test-plans`, `advanced-security`
 
 For more on Opencode MCP configuration, see the [Opencode MCP docs](https://opencode.ai/docs/mcp-servers/).
 
