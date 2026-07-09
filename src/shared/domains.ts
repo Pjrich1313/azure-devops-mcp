@@ -123,7 +123,7 @@ export class DomainsManager {
    * @returns Array of available domain names
    */
   public static getAvailableDomains(): string[] {
-    return Object.values(Domain);
+    return Object.values(Domain).filter((domain) => domain !== Domain.MCP_APPS);
   }
 
   /**
