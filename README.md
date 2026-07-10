@@ -15,11 +15,12 @@ This project provides Azure DevOps MCP tooling for AI agents, with a **remote-fi
 4. [⚙️ Supported Tools](#️-supported-tools)
 5. [🔌 Local MCP Server Installation (Optional)](#-local-mcp-server-installation-optional)
 6. [🌏 Using Domains (local)](#-using-domains-local)
-7. [🐥 Project and Team Defaults (local)](#-project-and-team-defaults-local)
-8. [📝 Troubleshooting](#-troubleshooting)
-9. [🎩 Examples & Best Practices](#-examples--best-practices)
-10. [🙋‍♀️ Frequently Asked Questions](#️-frequently-asked-questions)
-11. [📌 Contributing](#-contributing)
+7. [💰 Coins Domain](#-coins-domain)
+8. [🐥 Project and Team Defaults (local)](#-project-and-team-defaults-local)
+9. [📝 Troubleshooting](#-troubleshooting)
+10. [🎩 Examples & Best Practices](#-examples--best-practices)
+11. [🙋‍♀️ Frequently Asked Questions](#️-frequently-asked-questions)
+12. [📌 Contributing](#-contributing)
 
 ## 📺 Overview
 
@@ -37,6 +38,9 @@ The Azure DevOps MCP Server brings Azure DevOps context to your agents. Try prom
 - "Create a wiki page '/Architecture/Overview' with content about system design"
 - "Update the wiki page '/Getting Started' with new onboarding instructions"
 - "Get the content of the wiki page '/API/Authentication' from the Documentation wiki"
+- "Get my Coinbase balances"
+- "Get ETH balance for 0xAbc... and check ERC-20 balances for token contract 0xDef..."
+- "Query all crypto balances for ETH address 0x... and BTC address bc1..."
 
 ## 🏆 Expectations
 
@@ -192,11 +196,73 @@ For example, use `"-d", "core", "work", "work-items"` to load only Work Item rel
 }
 ```
 
-Domains that are available are: `core`, `work`, `work-items`, `search`, `test-plans`, `repositories`, `wiki`, `pipelines`, `advanced-security`
+Domains that are available are: `core`, `coins`, `work`, `work-items`, `search`, `test-plans`, `repositories`, `wiki`, `pipelines`, `advanced-security`
 
 We recommend that you always enable `core` tools so that you can fetch project level information.
 
 > By default all domains are loaded
+
+## 💰 Coins Domain
+
+The `coins` domain extends the MCP server with cryptocurrency balance tools, enabling agents to query live on-chain and exchange data as part of their workflows.
+
+### Tools
+
+| Tool | Description |
+|------|-------------|
+| `get_coinbase_balance` | Fetches account balances and holdings from the Coinbase Exchange API. Supports filtering zero-balance accounts. |
+| `get_ethereum_balance` | Returns the native ETH balance for an address and optionally resolves ERC-20 token balances via `balanceOf`. |
+| `get_bitcoin_balance` | Queries a Bitcoin address balance using the Blockstream public API. Includes optional mempool delta. |
+| `query_all_balances` | Aggregates Coinbase, Ethereum, and Bitcoin balances into a single unified response. Per-source errors are surfaced independently without blocking the aggregate. |
+
+### Configuration
+
+The coins domain is configured entirely through environment variables — no hardcoded keys or secrets.
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `COINBASE_API_KEY` | ✅ (Coinbase) | — | Coinbase Exchange API key |
+| `COINBASE_API_SECRET` | ✅ (Coinbase) | — | Coinbase Exchange API secret (base64-encoded) |
+| `COINBASE_API_PASSPHRASE` | ✅ (Coinbase) | — | Coinbase Exchange API passphrase |
+| `COINBASE_API_BASE_URL` | ❌ | `https://api.exchange.coinbase.com` | Override Coinbase endpoint (e.g. sandbox) |
+| `ETHEREUM_RPC_URL` | ❌ | `https://ethereum-rpc.publicnode.com` | Ethereum JSON-RPC endpoint |
+| `BITCOIN_API_BASE_URL` | ❌ | `https://blockstream.info/api` | Bitcoin REST API endpoint |
+
+> [!NOTE]
+> Ethereum and Bitcoin tools do **not** require credentials. Only Coinbase tools require API keys.
+
+### Example `.vscode/mcp.json` with Coins domain
+
+```json
+{
+  "inputs": [
+    {
+      "id": "ado_org",
+      "type": "promptString",
+      "description": "Azure DevOps organization name (e.g. 'contoso')"
+    }
+  ],
+  "servers": {
+    "ado_with_coins": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@azure-devops/mcp", "${input:ado_org}", "-d", "core", "coins"],
+      "env": {
+        "COINBASE_API_KEY": "<your-api-key>",
+        "COINBASE_API_SECRET": "<your-api-secret>",
+        "COINBASE_API_PASSPHRASE": "<your-passphrase>"
+      }
+    }
+  }
+}
+```
+
+### Example Prompts
+
+- `"Get my Coinbase balances, excluding zero-balance accounts"`
+- `"Get ETH balance for 0xAbCd... and ERC-20 balances for USDC contract 0xA0b8..."`
+- `"Query all crypto balances — ETH address 0x..., BTC address bc1..."`
+- `"Show me all balances across Coinbase, Ethereum, and Bitcoin"`
 
 ## 🐥 Project and Team Defaults (local)
 
