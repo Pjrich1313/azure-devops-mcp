@@ -127,7 +127,7 @@ async function fetchCoinbaseBalances(baseUrl: string, includeZeroBalances: boole
   }
 
   const requestPath = "/accounts";
-  const timestamp = (Date.now() / 1000).toString();
+  const timestamp = Math.floor(Date.now() / 1000).toString();
   const message = `${timestamp}GET${requestPath}`;
   const signature = createHmac("sha256", Buffer.from(apiSecret, "base64")).update(message).digest("base64");
   const url = `${normalizeBaseUrl(baseUrl)}${requestPath}`;
@@ -218,7 +218,7 @@ async function fetchBitcoinBalance(address: string, apiBaseUrl: string, includeM
     throw new Error("address is required");
   }
 
-  const url = `${normalizeBaseUrl(apiBaseUrl)}/address/${address}`;
+  const url = `${normalizeBaseUrl(apiBaseUrl)}/address/${encodeURIComponent(address)}`;
   const response = await fetchJson<BitcoinAddressResponse>(url, {
     method: "GET",
     headers: {
@@ -251,11 +251,10 @@ function configureCoinsTools(server: McpServer) {
     "Get Coinbase account balances and holdings for the Pamela Menopool project setup.",
     {
       includeZeroBalances: z.boolean().optional().default(false).describe("When true, include Coinbase assets with a zero balance."),
-      baseUrl: z.string().optional().describe("Optional Coinbase API base URL. Defaults to COINBASE_API_BASE_URL or https://api.exchange.coinbase.com."),
     },
-    async ({ includeZeroBalances, baseUrl }) => {
+    async ({ includeZeroBalances }) => {
       try {
-        const result = await fetchCoinbaseBalances(baseUrl ?? readEnvValue("COINBASE_API_BASE_URL") ?? DEFAULT_COINBASE_BASE_URL, includeZeroBalances);
+        const result = await fetchCoinbaseBalances(readEnvValue("COINBASE_API_BASE_URL") ?? DEFAULT_COINBASE_BASE_URL, includeZeroBalances);
         return {
           content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         };
@@ -323,18 +322,17 @@ function configureCoinsTools(server: McpServer) {
       ethereumTokenContracts: z.array(z.string()).optional().default([]).describe("Optional ERC-20 contract addresses to query for the Ethereum address."),
       bitcoinAddress: z.string().optional().describe("Bitcoin address for BTC balance."),
       includeBitcoinMempool: z.boolean().optional().default(true).describe("When true, includes mempool deltas in BTC balance."),
-      coinbaseBaseUrl: z.string().optional().describe("Optional Coinbase base URL override."),
       ethereumRpcUrl: z.string().optional().describe("Optional Ethereum RPC URL override."),
       bitcoinApiBaseUrl: z.string().optional().describe("Optional Bitcoin API base URL override."),
       includeZeroCoinbaseBalances: z.boolean().optional().default(false).describe("When true, Coinbase zero balances are included."),
     },
-    async ({ includeCoinbase, ethereumAddress, ethereumTokenContracts, bitcoinAddress, includeBitcoinMempool, coinbaseBaseUrl, ethereumRpcUrl, bitcoinApiBaseUrl, includeZeroCoinbaseBalances }) => {
+    async ({ includeCoinbase, ethereumAddress, ethereumTokenContracts, bitcoinAddress, includeBitcoinMempool, ethereumRpcUrl, bitcoinApiBaseUrl, includeZeroCoinbaseBalances }) => {
       const sources: Record<string, unknown> = {};
       const errors: Record<string, string> = {};
 
       if (includeCoinbase) {
         try {
-          sources.coinbase = await fetchCoinbaseBalances(coinbaseBaseUrl ?? readEnvValue("COINBASE_API_BASE_URL") ?? DEFAULT_COINBASE_BASE_URL, includeZeroCoinbaseBalances);
+          sources.coinbase = await fetchCoinbaseBalances(readEnvValue("COINBASE_API_BASE_URL") ?? DEFAULT_COINBASE_BASE_URL, includeZeroCoinbaseBalances);
         } catch (error) {
           errors.coinbase = toErrorMessage(error);
         }
