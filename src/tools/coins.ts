@@ -66,6 +66,17 @@ function encodePayoutComponent(value: string): string {
   return encodeURIComponent(value.trim());
 }
 
+function isPositiveDecimalString(value: string): boolean {
+  const trimmed = value.trim();
+  return /^\d+(\.\d+)?$/.test(trimmed) && Number.parseFloat(trimmed) > 0;
+}
+
+function addOptionalPayoutComponent(parts: string[], key: string, value?: string): void {
+  if (value && value.trim().length > 0) {
+    parts.push(`${key}=${encodePayoutComponent(value)}`);
+  }
+}
+
 function ensureHexAddress(address: string, fieldName: string): void {
   if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
     throw new Error(`${fieldName} must be a valid 0x-prefixed 20-byte hex address`);
@@ -394,9 +405,7 @@ function configureCoinsTools(server: McpServer) {
       amount: z
         .string()
         .describe("Payout amount as a positive decimal string (e.g. 0.5, 100, 1234.56).")
-        .refine((value) => /^\d+(\.\d+)?$/.test(value.trim()) && Number.parseFloat(value.trim()) > 0, {
-          message: "amount must be a positive decimal string",
-        }),
+        .refine((value) => isPositiveDecimalString(value), { message: "amount must be a positive decimal string" }),
       currency: z.string().min(1).describe("Asset or fiat symbol to payout (e.g. BTC, ETH, USDC, USD)."),
       recipient: z.string().min(1).describe("Recipient wallet address, account, or destination identifier."),
       network: z.string().optional().describe("Optional payout network or chain (e.g. bitcoin, ethereum, base)."),
@@ -413,15 +422,9 @@ function configureCoinsTools(server: McpServer) {
         payoutStringParts.push(`currency=${encodedCurrency}`);
         payoutStringParts.push(`recipient=${encodedRecipient}`);
 
-        if (network && network.trim().length > 0) {
-          payoutStringParts.push(`network=${encodePayoutComponent(network)}`);
-        }
-        if (memo && memo.trim().length > 0) {
-          payoutStringParts.push(`memo=${encodePayoutComponent(memo)}`);
-        }
-        if (reference && reference.trim().length > 0) {
-          payoutStringParts.push(`reference=${encodePayoutComponent(reference)}`);
-        }
+        addOptionalPayoutComponent(payoutStringParts, "network", network);
+        addOptionalPayoutComponent(payoutStringParts, "memo", memo);
+        addOptionalPayoutComponent(payoutStringParts, "reference", reference);
 
         const payoutString = `PAYOUT|${payoutStringParts.join("|")}`;
         return {

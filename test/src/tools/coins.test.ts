@@ -166,6 +166,7 @@ describe("configureCoinsTools", () => {
     expect(payload.project).toBe("Pamela Menopool");
     expect(payload.source).toBe("payout");
     expect(payload.payoutString).toBe("PAYOUT|amount=12.34|currency=USDC|recipient=0xabc123|network=base|memo=invoice%2042|reference=pay-001");
+    expect(payload.payoutString).toContain("memo=invoice%2042");
   });
 
   it("next_string_to_payout omits optional fields when not provided", async () => {
@@ -178,6 +179,7 @@ describe("configureCoinsTools", () => {
     });
 
     const payload = JSON.parse(result.content[0].text);
+    expect(payload.source).toBe("payout");
     expect(payload.payoutString).toBe("PAYOUT|amount=1|currency=BTC|recipient=bc1qrecipient");
   });
 
@@ -193,6 +195,7 @@ describe("configureCoinsTools", () => {
     });
 
     const payload = JSON.parse(result.content[0].text);
+    expect(payload.source).toBe("payout");
     expect(payload.payoutString).toBe("PAYOUT|amount=2.5|currency=USD|recipient=account%7Cname%3Fx%3D1|memo=memo%2Fvalue%20%231|reference=ref%3Aabc%2F123");
   });
 });
