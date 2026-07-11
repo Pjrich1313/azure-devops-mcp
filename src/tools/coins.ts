@@ -405,7 +405,13 @@ function configureCoinsTools(server: McpServer) {
     },
     async ({ amount, currency, recipient, network, memo, reference }) => {
       try {
-        const payoutStringParts = [`amount=${encodePayoutComponent(amount)}`, `currency=${encodePayoutComponent(currency.toUpperCase())}`, `recipient=${encodePayoutComponent(recipient)}`];
+        const payoutStringParts: string[] = [];
+        const encodedAmount = encodePayoutComponent(amount);
+        const encodedCurrency = encodePayoutComponent(currency.toUpperCase());
+        const encodedRecipient = encodePayoutComponent(recipient);
+        payoutStringParts.push(`amount=${encodedAmount}`);
+        payoutStringParts.push(`currency=${encodedCurrency}`);
+        payoutStringParts.push(`recipient=${encodedRecipient}`);
 
         if (network && network.trim().length > 0) {
           payoutStringParts.push(`network=${encodePayoutComponent(network)}`);
