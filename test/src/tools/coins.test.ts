@@ -36,7 +36,7 @@ describe("configureCoinsTools", () => {
 
   it("registers coin tools", () => {
     configureCoinsTools(server);
-    expect(server.tool).toHaveBeenCalledTimes(4);
+    expect(server.tool).toHaveBeenCalledTimes(5);
   });
 
   it("get_coinbase_balance returns filtered balances", async () => {
@@ -148,5 +148,53 @@ describe("configureCoinsTools", () => {
     expect(payload.sources.ethereum.source).toBe("ethereum");
     expect(payload.sources.bitcoin.source).toBe("bitcoin");
     expect(payload.errors).toEqual({});
+  });
+
+  it("next_string_to_payout creates a normalized payout string", async () => {
+    configureCoinsTools(server);
+    const handler = getHandler("next_string_to_payout");
+    const result = await handler({
+      amount: "12.34",
+      currency: "usdc",
+      recipient: "0xabc123",
+      network: "base",
+      memo: "invoice 42",
+      reference: "pay-001",
+    });
+
+    const payload = JSON.parse(result.content[0].text);
+    expect(payload.project).toBe("Pamela Menopool");
+    expect(payload.source).toBe("payout");
+    expect(payload.payoutString).toBe("PAYOUT|amount=12.34|currency=USDC|recipient=0xabc123|network=base|memo=invoice%2042|reference=pay-001");
+  });
+
+  it("next_string_to_payout omits optional fields when not provided", async () => {
+    configureCoinsTools(server);
+    const handler = getHandler("next_string_to_payout");
+    const result = await handler({
+      amount: "1",
+      currency: "btc",
+      recipient: "bc1qrecipient",
+    });
+
+    const payload = JSON.parse(result.content[0].text);
+    expect(payload.source).toBe("payout");
+    expect(payload.payoutString).toBe("PAYOUT|amount=1|currency=BTC|recipient=bc1qrecipient");
+  });
+
+  it("next_string_to_payout url-encodes special characters", async () => {
+    configureCoinsTools(server);
+    const handler = getHandler("next_string_to_payout");
+    const result = await handler({
+      amount: "2.5",
+      currency: "usd",
+      recipient: "account|name?x=1",
+      memo: "memo/value #1",
+      reference: "ref:abc/123",
+    });
+
+    const payload = JSON.parse(result.content[0].text);
+    expect(payload.source).toBe("payout");
+    expect(payload.payoutString).toBe("PAYOUT|amount=2.5|currency=USD|recipient=account%7Cname%3Fx%3D1|memo=memo%2Fvalue%20%231|reference=ref%3Aabc%2F123");
   });
 });

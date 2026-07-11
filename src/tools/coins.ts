@@ -10,6 +10,7 @@ const COINS_TOOLS = {
   get_ethereum_balance: "get_ethereum_balance",
   get_bitcoin_balance: "get_bitcoin_balance",
   query_all_balances: "query_all_balances",
+  next_string_to_payout: "next_string_to_payout",
 };
 
 const PAMELA_MENOPOOL_PROJECT = "Pamela Menopool";
@@ -59,6 +60,25 @@ function readEnvValue(name: string): string | undefined {
   if (!value) return undefined;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function encodePayoutComponent(value: string): string {
+  return encodeURIComponent(value.trim());
+}
+
+function isPositiveDecimalString(value: string): boolean {
+  const trimmed = value.trim();
+  return /^\d+(\.\d+)?$/.test(trimmed) && Number.parseFloat(trimmed) > 0;
+}
+
+function addPayoutComponent(parts: string[], key: string, value: string): void {
+  parts.push(`${key}=${encodePayoutComponent(value)}`);
+}
+
+function addOptionalPayoutComponent(parts: string[], key: string, value?: string): void {
+  if (value && value.trim().length > 0) {
+    addPayoutComponent(parts, key, value);
+  }
 }
 
 function ensureHexAddress(address: string, fieldName: string): void {
@@ -379,6 +399,57 @@ function configureCoinsTools(server: McpServer) {
           },
         ],
       };
+    }
+  );
+
+  server.tool(
+    COINS_TOOLS.next_string_to_payout,
+    "Generate a normalized payout instruction string for Pamela Menopool payout workflows.",
+    {
+      amount: z
+        .string()
+        .describe("Payout amount as a positive decimal string (e.g. 0.5, 100, 1234.56).")
+        .refine((value) => isPositiveDecimalString(value), { message: "amount must be a positive decimal string" }),
+      currency: z.string().min(1).describe("Asset or fiat symbol to payout (e.g. BTC, ETH, USDC, USD)."),
+      recipient: z.string().min(1).describe("Recipient wallet address, account, or destination identifier."),
+      network: z.string().optional().describe("Optional payout network or chain (e.g. bitcoin, ethereum, base)."),
+      memo: z.string().optional().describe("Optional memo, note, or destination tag."),
+      reference: z.string().optional().describe("Optional payout reference identifier."),
+    },
+    async ({ amount, currency, recipient, network, memo, reference }) => {
+      try {
+        const payoutStringParts: string[] = [];
+        addPayoutComponent(payoutStringParts, "amount", amount);
+        addPayoutComponent(payoutStringParts, "currency", currency.toUpperCase());
+        addPayoutComponent(payoutStringParts, "recipient", recipient);
+
+        addOptionalPayoutComponent(payoutStringParts, "network", network);
+        addOptionalPayoutComponent(payoutStringParts, "memo", memo);
+        addOptionalPayoutComponent(payoutStringParts, "reference", reference);
+
+        const payoutString = `PAYOUT|${payoutStringParts.join("|")}`;
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                {
+                  project: PAMELA_MENOPOOL_PROJECT,
+                  source: "payout",
+                  payoutString,
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      } catch (error) {
+        return {
+          content: [{ type: "text", text: `Error creating payout string: ${toErrorMessage(error)}` }],
+          isError: true,
+        };
+      }
     }
   );
 }
