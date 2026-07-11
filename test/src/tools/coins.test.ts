@@ -166,7 +166,6 @@ describe("configureCoinsTools", () => {
     expect(payload.project).toBe("Pamela Menopool");
     expect(payload.source).toBe("payout");
     expect(payload.payoutString).toBe("PAYOUT|amount=12.34|currency=USDC|recipient=0xabc123|network=base|memo=invoice%2042|reference=pay-001");
-    expect(payload.payoutString).toContain("memo=invoice%2042");
   });
 
   it("next_string_to_payout omits optional fields when not provided", async () => {

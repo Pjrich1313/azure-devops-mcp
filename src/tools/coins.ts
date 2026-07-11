@@ -71,9 +71,13 @@ function isPositiveDecimalString(value: string): boolean {
   return /^\d+(\.\d+)?$/.test(trimmed) && Number.parseFloat(trimmed) > 0;
 }
 
+function addPayoutComponent(parts: string[], key: string, value: string): void {
+  parts.push(`${key}=${encodePayoutComponent(value)}`);
+}
+
 function addOptionalPayoutComponent(parts: string[], key: string, value?: string): void {
   if (value && value.trim().length > 0) {
-    parts.push(`${key}=${encodePayoutComponent(value)}`);
+    addPayoutComponent(parts, key, value);
   }
 }
 
@@ -415,12 +419,9 @@ function configureCoinsTools(server: McpServer) {
     async ({ amount, currency, recipient, network, memo, reference }) => {
       try {
         const payoutStringParts: string[] = [];
-        const encodedAmount = encodePayoutComponent(amount);
-        const encodedCurrency = encodePayoutComponent(currency.toUpperCase());
-        const encodedRecipient = encodePayoutComponent(recipient);
-        payoutStringParts.push(`amount=${encodedAmount}`);
-        payoutStringParts.push(`currency=${encodedCurrency}`);
-        payoutStringParts.push(`recipient=${encodedRecipient}`);
+        addPayoutComponent(payoutStringParts, "amount", amount);
+        addPayoutComponent(payoutStringParts, "currency", currency.toUpperCase());
+        addPayoutComponent(payoutStringParts, "recipient", recipient);
 
         addOptionalPayoutComponent(payoutStringParts, "network", network);
         addOptionalPayoutComponent(payoutStringParts, "memo", memo);
