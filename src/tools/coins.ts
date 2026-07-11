@@ -10,6 +10,7 @@ const COINS_TOOLS = {
   get_ethereum_balance: "get_ethereum_balance",
   get_bitcoin_balance: "get_bitcoin_balance",
   query_all_balances: "query_all_balances",
+  next_string_to_payout: "next_string_to_payout",
 };
 
 const PAMELA_MENOPOOL_PROJECT = "Pamela Menopool";
@@ -59,6 +60,10 @@ function readEnvValue(name: string): string | undefined {
   if (!value) return undefined;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function encodePayoutComponent(value: string): string {
+  return encodeURIComponent(value.trim());
 }
 
 function ensureHexAddress(address: string, fieldName: string): void {
@@ -379,6 +384,62 @@ function configureCoinsTools(server: McpServer) {
           },
         ],
       };
+    }
+  );
+
+  server.tool(
+    COINS_TOOLS.next_string_to_payout,
+    "Generate a normalized payout instruction string for Pamela Menopool payout workflows.",
+    {
+      amount: z
+        .string()
+        .describe("Payout amount as a positive decimal string (e.g. 0.5, 100, 1234.56).")
+        .refine((value) => /^\d+(\.\d+)?$/.test(value.trim()) && Number.parseFloat(value.trim()) > 0, {
+          message: "amount must be a positive decimal string",
+        }),
+      currency: z.string().min(1).describe("Asset or fiat symbol to payout (e.g. BTC, ETH, USDC, USD)."),
+      recipient: z.string().min(1).describe("Recipient wallet address, account, or destination identifier."),
+      network: z.string().optional().describe("Optional payout network or chain (e.g. bitcoin, ethereum, base)."),
+      memo: z.string().optional().describe("Optional memo, note, or destination tag."),
+      reference: z.string().optional().describe("Optional payout reference identifier."),
+    },
+    async ({ amount, currency, recipient, network, memo, reference }) => {
+      try {
+        const payoutStringParts = [`amount=${encodePayoutComponent(amount)}`, `currency=${encodePayoutComponent(currency.toUpperCase())}`, `recipient=${encodePayoutComponent(recipient)}`];
+
+        if (network && network.trim().length > 0) {
+          payoutStringParts.push(`network=${encodePayoutComponent(network)}`);
+        }
+        if (memo && memo.trim().length > 0) {
+          payoutStringParts.push(`memo=${encodePayoutComponent(memo)}`);
+        }
+        if (reference && reference.trim().length > 0) {
+          payoutStringParts.push(`reference=${encodePayoutComponent(reference)}`);
+        }
+
+        const payoutString = `PAYOUT|${payoutStringParts.join("|")}`;
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                {
+                  project: PAMELA_MENOPOOL_PROJECT,
+                  source: "payout",
+                  payoutString,
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      } catch (error) {
+        return {
+          content: [{ type: "text", text: `Error creating payout string: ${toErrorMessage(error)}` }],
+          isError: true,
+        };
+      }
     }
   );
 }

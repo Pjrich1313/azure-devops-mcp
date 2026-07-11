@@ -36,7 +36,7 @@ describe("configureCoinsTools", () => {
 
   it("registers coin tools", () => {
     configureCoinsTools(server);
-    expect(server.tool).toHaveBeenCalledTimes(4);
+    expect(server.tool).toHaveBeenCalledTimes(5);
   });
 
   it("get_coinbase_balance returns filtered balances", async () => {
@@ -148,5 +148,23 @@ describe("configureCoinsTools", () => {
     expect(payload.sources.ethereum.source).toBe("ethereum");
     expect(payload.sources.bitcoin.source).toBe("bitcoin");
     expect(payload.errors).toEqual({});
+  });
+
+  it("next_string_to_payout creates a normalized payout string", async () => {
+    configureCoinsTools(server);
+    const handler = getHandler("next_string_to_payout");
+    const result = await handler({
+      amount: "12.34",
+      currency: "usdc",
+      recipient: "0xabc123",
+      network: "base",
+      memo: "invoice 42",
+      reference: "pay-001",
+    });
+
+    const payload = JSON.parse(result.content[0].text);
+    expect(payload.project).toBe("Pamela Menopool");
+    expect(payload.source).toBe("payout");
+    expect(payload.payoutString).toBe("PAYOUT|amount=12.34|currency=USDC|recipient=0xabc123|network=base|memo=invoice%2042|reference=pay-001");
   });
 });
