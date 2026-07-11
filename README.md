@@ -222,6 +222,15 @@ Example prompts:
 - `Get ETH balance for 0x... and ERC-20 balances for token contracts [...]`
 - `Query all balances for Pamela Menopool with ETH address 0x... and BTC address bc1...`
 
+### Diff-to-patch guardrails
+
+When asking an agent to convert pull request diffs into patches, use guardrails to reduce bad edits:
+
+- Scope the request to exact file paths and line ranges from the diff.
+- Require unchanged context lines around each hunk before applying a patch.
+- Reject hunks that do not match current file content exactly.
+- Apply and review patches in small batches, then run validation after each batch.
+
 ## 🐥 Project and Team Defaults (local)
 
 You can also configure default Azure DevOps project and team values from `.vscode/mcp.json` using `project` and `team`, so tools can skip selection prompts.
