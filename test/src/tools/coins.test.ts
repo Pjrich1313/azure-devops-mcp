@@ -199,7 +199,8 @@ describe("configureCoinsTools", () => {
   });
 
   it("pull_coins_contract_and_run_with_payout uses pulled contract balance by default", async () => {
-    (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(mockJsonResponse({ result: "0x2386f26fc10000" })).mockResolvedValueOnce(mockJsonResponse({ result: "0x12" }));
+    (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(mockJsonResponse({ result: "0x2386f26fc10000" }));
+    (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(mockJsonResponse({ result: "0x12" }));
 
     configureCoinsTools(server);
     const handler = getHandler("pull_coins_contract_and_run_with_payout");
@@ -225,7 +226,8 @@ describe("configureCoinsTools", () => {
   });
 
   it("pull_coins_contract_and_run_with_payout supports explicit amount overrides", async () => {
-    (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(mockJsonResponse({ result: "0x8ac7230489e80000" })).mockResolvedValueOnce(mockJsonResponse({ result: "0x12" }));
+    (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(mockJsonResponse({ result: "0x8ac7230489e80000" }));
+    (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(mockJsonResponse({ result: "0x12" }));
 
     configureCoinsTools(server);
     const handler = getHandler("pull_coins_contract_and_run_with_payout");
