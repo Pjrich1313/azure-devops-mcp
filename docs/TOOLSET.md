@@ -13,6 +13,8 @@
 | Coins             | [mcp_ado_get_ethereum_balance](#mcp_ado_get_ethereum_balance)                                             | Get ETH and optional ERC-20 balances                              |
 | Coins             | [mcp_ado_get_bitcoin_balance](#mcp_ado_get_bitcoin_balance)                                               | Get BTC balance for a Bitcoin address                             |
 | Coins             | [mcp_ado_query_all_balances](#mcp_ado_query_all_balances)                                                 | Aggregate Coinbase, Ethereum, and Bitcoin balances                |
+| Coins             | [mcp_ado_next_string_to_payout](#mcp_ado_next_string_to_payout)                                           | Generate a normalized payout instruction string                   |
+| Coins             | [mcp_ado_pull_coins_contract_and_run_with_payout](#mcp_ado_pull_coins_contract_and_run_with_payout)       | Pull ERC-20 contract balance and build payout instruction         |
 | Pipelines         | [mcp_ado_pipelines_create_pipeline](#mcp_ado_pipelines_create_pipeline)                                   | Create a new pipeline with YAML configuration                     |
 | Pipelines         | [mcp_ado_pipelines_get_builds](#mcp_ado_pipelines_get_builds)                                             | Retrieve a list of builds with optional filters                   |
 | Pipelines         | [mcp_ado_pipelines_get_build_status](#mcp_ado_pipelines_get_build_status)                                 | Get the status of a specific build                                |
@@ -167,6 +169,20 @@ Aggregate Coinbase, Ethereum, and Bitcoin balances for Pamela Menopool workflows
 
 - **Required**: None
 - **Optional**: `includeCoinbase`, `ethereumAddress`, `ethereumTokenContracts`, `bitcoinAddress`, `includeBitcoinMempool`, `coinbaseBaseUrl`, `ethereumRpcUrl`, `bitcoinApiBaseUrl`, `includeZeroCoinbaseBalances`
+
+### mcp_ado_next_string_to_payout
+
+Generate a normalized payout instruction string for Pamela Menopool payout workflows.
+
+- **Required**: `amount`, `currency`, `recipient`
+- **Optional**: `network`, `memo`, `reference`
+
+### mcp_ado_pull_coins_contract_and_run_with_payout
+
+Pull ERC-20 contract balance for an address and build a normalized payout instruction string.
+
+- **Required**: `address`, `tokenContract`, `recipient`, `currency`
+- **Optional**: `amount`, `network`, `memo`, `reference`, `rpcUrl`
 
 ## Pipelines
 

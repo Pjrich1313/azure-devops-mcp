@@ -206,6 +206,8 @@ The `coins` domain adds cryptocurrency balance tools for the Pamela Menopool pro
 - `get_ethereum_balance` (ETH and optional ERC-20 balances)
 - `get_bitcoin_balance` (BTC balance from a public endpoint)
 - `query_all_balances` (aggregates all configured sources)
+- `next_string_to_payout` (normalizes payout instructions)
+- `pull_coins_contract_and_run_with_payout` (pulls ERC-20 contract balances and builds payout instructions)
 
 Configuration via environment variables:
 
@@ -221,6 +223,7 @@ Example prompts:
 - `Get Pamela Menopool Coinbase balances`
 - `Get ETH balance for 0x... and ERC-20 balances for token contracts [...]`
 - `Query all balances for Pamela Menopool with ETH address 0x... and BTC address bc1...`
+- `Pull coins contract 0x... for address 0x... and run with payout to recipient 0x...`
 
 ### Diff-to-patch guardrails
 
