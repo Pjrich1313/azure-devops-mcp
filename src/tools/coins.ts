@@ -11,6 +11,7 @@ const COINS_TOOLS = {
   get_bitcoin_balance: "get_bitcoin_balance",
   query_all_balances: "query_all_balances",
   next_string_to_payout: "next_string_to_payout",
+  pull_coins_contract_and_run_with_payout: "pull_coins_contract_and_run_with_payout",
 };
 
 const PAMELA_MENOPOOL_PROJECT = "Pamela Menopool";
@@ -233,6 +234,34 @@ async function fetchEthereumBalances(address: string, tokenContracts: string[], 
   };
 }
 
+async function fetchErc20ContractBalance(address: string, tokenContract: string, rpcUrl: string): Promise<{ contract: string; balanceRaw: string; balance: string; decimals: number }> {
+  ensureHexAddress(address, "address");
+  ensureHexAddress(tokenContract, "token contract");
+
+  const addressData = address.slice(2).padStart(64, "0");
+  const balanceOfData = `0x${ERC20_BALANCE_OF_SELECTOR}${addressData}`;
+  const tokenBalanceHex = await fetchEthereumRpcResult<string>(rpcUrl, "eth_call", [{ to: tokenContract, data: balanceOfData }, "latest"]);
+  const tokenBalanceRaw = parseHexToBigInt(tokenBalanceHex, "eth_call balanceOf");
+
+  let decimals = 18;
+  try {
+    const decimalsHex = await fetchEthereumRpcResult<string>(rpcUrl, "eth_call", [{ to: tokenContract, data: `0x${ERC20_DECIMALS_SELECTOR}` }, "latest"]);
+    decimals = Number.parseInt(decimalsHex, 16);
+    if (!Number.isFinite(decimals) || decimals < 0 || decimals > 255) {
+      decimals = 18;
+    }
+  } catch {
+    decimals = 18;
+  }
+
+  return {
+    contract: tokenContract,
+    balanceRaw: tokenBalanceRaw.toString(),
+    balance: formatUnits(tokenBalanceRaw, decimals),
+    decimals,
+  };
+}
+
 async function fetchBitcoinBalance(address: string, apiBaseUrl: string, includeMempool: boolean): Promise<unknown> {
   if (!address || address.trim().length === 0) {
     throw new Error("address is required");
@@ -447,6 +476,66 @@ function configureCoinsTools(server: McpServer) {
       } catch (error) {
         return {
           content: [{ type: "text", text: `Error creating payout string: ${toErrorMessage(error)}` }],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  server.tool(
+    COINS_TOOLS.pull_coins_contract_and_run_with_payout,
+    "Pull an ERC-20 contract balance and generate a normalized payout instruction string.",
+    {
+      address: z.string().describe("Ethereum wallet address to query (0x-prefixed)."),
+      tokenContract: z.string().describe("ERC-20 token contract address to pull from (0x-prefixed)."),
+      recipient: z.string().min(1).describe("Recipient wallet address, account, or destination identifier."),
+      currency: z.string().min(1).describe("Asset or fiat symbol to payout (e.g. BTC, ETH, USDC, USD)."),
+      amount: z
+        .string()
+        .optional()
+        .describe("Optional payout amount as a positive decimal string. Defaults to the pulled contract balance.")
+        .refine((value) => value === undefined || isPositiveDecimalString(value), { message: "amount must be a positive decimal string" }),
+      network: z.string().optional().describe("Optional payout network or chain (e.g. bitcoin, ethereum, base)."),
+      memo: z.string().optional().describe("Optional memo, note, or destination tag."),
+      reference: z.string().optional().describe("Optional payout reference identifier."),
+      rpcUrl: z.string().optional().describe("Optional Ethereum RPC URL. Defaults to ETHEREUM_RPC_URL or https://ethereum-rpc.publicnode.com."),
+    },
+    async ({ address, tokenContract, recipient, currency, amount, network, memo, reference, rpcUrl }) => {
+      try {
+        const contract = await fetchErc20ContractBalance(address, tokenContract, rpcUrl ?? readEnvValue("ETHEREUM_RPC_URL") ?? DEFAULT_ETHEREUM_RPC_URL);
+        const payoutAmount = amount ?? contract.balance;
+        if (!isPositiveDecimalString(payoutAmount)) {
+          throw new Error("Resolved payout amount must be a positive decimal string");
+        }
+
+        const payoutStringParts: string[] = [];
+        addPayoutComponent(payoutStringParts, "amount", payoutAmount);
+        addPayoutComponent(payoutStringParts, "currency", currency.toUpperCase());
+        addPayoutComponent(payoutStringParts, "recipient", recipient);
+        addOptionalPayoutComponent(payoutStringParts, "network", network);
+        addOptionalPayoutComponent(payoutStringParts, "memo", memo);
+        addOptionalPayoutComponent(payoutStringParts, "reference", reference);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                {
+                  project: PAMELA_MENOPOOL_PROJECT,
+                  source: "contract-payout",
+                  contract,
+                  payoutString: `PAYOUT|${payoutStringParts.join("|")}`,
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      } catch (error) {
+        return {
+          content: [{ type: "text", text: `Error pulling contract and creating payout string: ${toErrorMessage(error)}` }],
           isError: true,
         };
       }

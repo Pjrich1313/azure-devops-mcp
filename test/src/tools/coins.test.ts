@@ -36,7 +36,7 @@ describe("configureCoinsTools", () => {
 
   it("registers coin tools", () => {
     configureCoinsTools(server);
-    expect(server.tool).toHaveBeenCalledTimes(5);
+    expect(server.tool).toHaveBeenCalledTimes(6);
   });
 
   it("get_coinbase_balance returns filtered balances", async () => {
@@ -196,5 +196,55 @@ describe("configureCoinsTools", () => {
     const payload = JSON.parse(result.content[0].text);
     expect(payload.source).toBe("payout");
     expect(payload.payoutString).toBe("PAYOUT|amount=2.5|currency=USD|recipient=account%7Cname%3Fx%3D1|memo=memo%2Fvalue%20%231|reference=ref%3Aabc%2F123");
+  });
+
+  it("pull_coins_contract_and_run_with_payout uses pulled contract balance by default", async () => {
+    (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(mockJsonResponse({ result: "0x2386f26fc10000" }));
+    (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(mockJsonResponse({ result: "0x12" }));
+
+    configureCoinsTools(server);
+    const handler = getHandler("pull_coins_contract_and_run_with_payout");
+    const result = await handler({
+      address: "0x1111111111111111111111111111111111111111",
+      tokenContract: "0x2222222222222222222222222222222222222222",
+      recipient: "0xabc123",
+      currency: "usdc",
+      rpcUrl: "https://eth.example",
+    });
+
+    const payload = JSON.parse(result.content[0].text);
+    expect(payload.source).toBe("contract-payout");
+    expect(payload.contract).toEqual(
+      expect.objectContaining({
+        contract: "0x2222222222222222222222222222222222222222",
+        balanceRaw: "10000000000000000",
+        balance: "0.01",
+        decimals: 18,
+      })
+    );
+    expect(payload.payoutString).toBe("PAYOUT|amount=0.01|currency=USDC|recipient=0xabc123");
+  });
+
+  it("pull_coins_contract_and_run_with_payout supports explicit amount overrides", async () => {
+    (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(mockJsonResponse({ result: "0x8ac7230489e80000" }));
+    (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(mockJsonResponse({ result: "0x12" }));
+
+    configureCoinsTools(server);
+    const handler = getHandler("pull_coins_contract_and_run_with_payout");
+    const result = await handler({
+      address: "0x1111111111111111111111111111111111111111",
+      tokenContract: "0x2222222222222222222222222222222222222222",
+      recipient: "0xabc123",
+      currency: "usdc",
+      amount: "1.5",
+      network: "base",
+      memo: "invoice 42",
+      reference: "pay-001",
+      rpcUrl: "https://eth.example",
+    });
+
+    const payload = JSON.parse(result.content[0].text);
+    expect(payload.source).toBe("contract-payout");
+    expect(payload.payoutString).toBe("PAYOUT|amount=1.5|currency=USDC|recipient=0xabc123|network=base|memo=invoice%2042|reference=pay-001");
   });
 });
