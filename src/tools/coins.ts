@@ -294,10 +294,16 @@ async function fetchBitcoinBalance(address: string, apiBaseUrl: string, includeM
   };
 }
 
+/**
+ * Registers the optional Pamela Menopool cryptocurrency helper tools.
+ *
+ * These tools are intentionally scoped to the `coins` domain so that standard
+ * Azure DevOps workflows do not need to load or reason about them.
+ */
 function configureCoinsTools(server: McpServer) {
   server.tool(
     COINS_TOOLS.get_coinbase_balance,
-    "Get Coinbase account balances and holdings for the Pamela Menopool project setup.",
+    "Get Coinbase account balances and holdings for the optional Pamela Menopool coins domain.",
     {
       includeZeroBalances: z.boolean().optional().default(false).describe("When true, include Coinbase assets with a zero balance."),
       baseUrl: z.string().optional().describe("Optional Coinbase API base URL. Defaults to COINBASE_API_BASE_URL or https://api.exchange.coinbase.com."),
@@ -365,7 +371,7 @@ function configureCoinsTools(server: McpServer) {
 
   server.tool(
     COINS_TOOLS.query_all_balances,
-    "Aggregate Coinbase, Ethereum, and Bitcoin balances for Pamela Menopool workflows.",
+    "Aggregate Coinbase, Ethereum, and Bitcoin balances for the optional Pamela Menopool coins domain.",
     {
       includeCoinbase: z.boolean().optional().default(true).describe("When true, attempts to load Coinbase balances using configured credentials."),
       ethereumAddress: z.string().optional().describe("Ethereum address for ETH/ERC-20 balances."),
@@ -433,7 +439,7 @@ function configureCoinsTools(server: McpServer) {
 
   server.tool(
     COINS_TOOLS.next_string_to_payout,
-    "Generate a normalized payout instruction string for Pamela Menopool payout workflows.",
+    "Generate a normalized payout instruction string for Pamela Menopool payout workflows in the optional coins domain.",
     {
       amount: z
         .string()

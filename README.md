@@ -1,5 +1,9 @@
 # ⭐ Azure DevOps MCP Server
 
+[![npm version](https://img.shields.io/npm/v/%40azure-devops%2Fmcp?logo=npm)](https://www.npmjs.com/package/@azure-devops/mcp)
+[![Build status](https://github.com/Pjrich1313/azure-devops-mcp/actions/workflows/build.yml/badge.svg)](https://github.com/Pjrich1313/azure-devops-mcp/actions/workflows/build.yml)
+[![Coverage](https://codecov.io/gh/Pjrich1313/azure-devops-mcp/branch/main/graph/badge.svg)](https://codecov.io/gh/Pjrich1313/azure-devops-mcp)
+
 > [!IMPORTANT]
 > The Azure DevOps Remote MCP Server is now available in public preview for all organizations. We recommend migrating to the [Remote MCP Server](https://learn.microsoft.com/en-us/azure/devops/mcp-server/remote-mcp-server) going forward.
 >
@@ -10,16 +14,17 @@ This project provides Azure DevOps MCP tooling for AI agents, with a **remote-fi
 ## 📄 Table of Contents
 
 1. [📺 Overview](#-overview)
-2. [🏆 Expectations](#-expectations)
-3. [🚀 Remote MCP Server (Recommended)](#-remote-mcp-server-recommended)
-4. [⚙️ Supported Tools](#️-supported-tools)
-5. [🔌 Local MCP Server Installation (Optional)](#-local-mcp-server-installation-optional)
-6. [🌏 Using Domains (local)](#-using-domains-local)
-7. [🐥 Project and Team Defaults (local)](#-project-and-team-defaults-local)
-8. [📝 Troubleshooting](#-troubleshooting)
-9. [🎩 Examples & Best Practices](#-examples--best-practices)
-10. [🙋‍♀️ Frequently Asked Questions](#️-frequently-asked-questions)
-11. [📌 Contributing](#-contributing)
+2. [⚡ Quick Start](#-quick-start)
+3. [🏆 Expectations](#-expectations)
+4. [🚀 Remote MCP Server (Recommended)](#-remote-mcp-server-recommended)
+5. [⚙️ Supported Tools](#️-supported-tools)
+6. [🔌 Local MCP Server Installation (Optional)](#-local-mcp-server-installation-optional)
+7. [🌏 Using Domains (local)](#-using-domains-local)
+8. [🐥 Project and Team Defaults (local)](#-project-and-team-defaults-local)
+9. [📝 Troubleshooting](#-troubleshooting)
+10. [🎩 Examples & Best Practices](#-examples--best-practices)
+11. [🙋‍♀️ Frequently Asked Questions](#️-frequently-asked-questions)
+12. [📌 Contributing](#-contributing)
 
 ## 📺 Overview
 
@@ -37,6 +42,57 @@ The Azure DevOps MCP Server brings Azure DevOps context to your agents. Try prom
 - "Create a wiki page '/Architecture/Overview' with content about system design"
 - "Update the wiki page '/Getting Started' with new onboarding instructions"
 - "Get the content of the wiki page '/API/Authentication' from the Documentation wiki"
+
+## ⚡ Quick Start
+
+Choose the onboarding path that matches your environment:
+
+1. **Use the hosted Remote MCP Server** when you want the simplest setup.
+2. **Use the local `stdio` server** only when your client or workflow requires a local process.
+
+### Remote quick start
+
+Add this `.vscode/mcp.json` file and replace `{organization}` with your Azure DevOps organization name:
+
+```json
+{
+  "servers": {
+    "ado-remote-mcp": {
+      "url": "https://mcp.dev.azure.com/{organization}",
+      "type": "http"
+    }
+  },
+  "inputs": []
+}
+```
+
+### Local quick start
+
+1. Install [Node.js 20+](https://nodejs.org/en/download) and VS Code.
+2. Decide which authentication mode you want to use: `interactive`, `azcli`, `envvar`, or `pat`.
+3. If you use `envvar` or `pat`, set the required environment variable before starting the server.
+4. Add the local server entry to `.vscode/mcp.json`:
+
+```json
+{
+  "inputs": [
+    {
+      "id": "ado_org",
+      "type": "promptString",
+      "description": "Azure DevOps organization name (for example: contoso)"
+    }
+  ],
+  "servers": {
+    "ado": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@azure-devops/mcp", "${input:ado_org}"]
+    }
+  }
+}
+```
+
+See the [Getting Started guide](./docs/GETTINGSTARTED.md#-authentication-methods) for authentication setup details, including Azure CLI sign-in, bearer token usage, and PAT configuration.
 
 ## 🏆 Expectations
 
@@ -96,7 +152,9 @@ For the best experience, use Visual Studio Code and GitHub Copilot. See the [get
 
 1. Install [VS Code](https://code.visualstudio.com/download) or [VS Code Insiders](https://code.visualstudio.com/insiders)
 2. Install [Node.js](https://nodejs.org/en/download) 20+
-3. Open VS Code in an empty folder
+3. Choose an authentication mode: `interactive`, `azcli`, `envvar`, or `pat`
+4. If you plan to use `envvar` or `pat`, set the required environment variable before starting the server
+5. Open VS Code in an empty folder
 
 ### Installation
 
@@ -199,6 +257,8 @@ We recommend that you always enable `core` tools so that you can fetch project l
 > By default all domains are loaded
 
 ### Coins domain (Pamela Menopool)
+
+The `coins` domain is an optional, project-specific extension for Pamela Menopool cryptocurrency workflows. It is not required for standard Azure DevOps scenarios, and you can leave this domain disabled unless you explicitly need those balance or payout helpers.
 
 The `coins` domain adds cryptocurrency balance tools for the Pamela Menopool project workflows:
 
