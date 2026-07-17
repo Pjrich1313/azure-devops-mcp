@@ -2,6 +2,16 @@
 
 ## Overview
 
+Use this document as a quick reference for local MCP tools. For remote-server onboarding and authentication setup, start with the [README](../README.md) and [Getting Started guide](./GETTINGSTARTED.md).
+
+### Example prompts
+
+- `List Azure DevOps projects`
+- `List teams for project Contoso`
+- `Get recent builds for project Contoso`
+- `List wiki pages in the Documentation wiki for Contoso`
+- `Get work items in the current iteration for Contoso and Fabrikam Team`
+
 | Functional Area   | Tool                                                                                                      | Description                                                       |
 | ----------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | Advanced Security | [mcp_ado_advsec_get_alerts](#mcp_ado_advsec_get_alerts)                                                   | Retrieve Advanced Security alerts for a repository                |
@@ -140,7 +150,14 @@ Retrieve Azure DevOps identity IDs for a provided search filter.
 
 ## Coins
 
-Pamela Menopool branded cryptocurrency balance tools.
+The `coins` domain is an optional Pamela Menopool extension. These tools are separate from the standard Azure DevOps toolset and are only useful if you intentionally enable the `coins` domain for cryptocurrency balance or payout workflows.
+
+### Example prompts
+
+- `Get Coinbase balances with zero-balance assets hidden`
+- `Get ETH balance for 0x... and ERC-20 balances for token contracts 0x..., 0x...`
+- `Query all balances for Pamela Menopool using ETH address 0x... and BTC address bc1...`
+- `Create a payout string for 25 USDC to recipient 0x... on base`
 
 ### mcp_ado_get_coinbase_balance
 
@@ -148,6 +165,9 @@ Get Coinbase account balances and holdings.
 
 - **Required**: None (credentials via `COINBASE_API_KEY`, `COINBASE_API_SECRET`, `COINBASE_API_PASSPHRASE`)
 - **Optional**: `baseUrl`, `includeZeroBalances`
+- **Parameter details**:
+  - `includeZeroBalances`: Include assets whose balance, available amount, and hold are all zero.
+  - `baseUrl`: Override the Coinbase Exchange API base URL. Defaults to `COINBASE_API_BASE_URL` or `https://api.exchange.coinbase.com`.
 
 ### mcp_ado_get_ethereum_balance
 
@@ -155,6 +175,10 @@ Get ETH and optional ERC-20 balances for an Ethereum address.
 
 - **Required**: `address`
 - **Optional**: `rpcUrl`, `tokenContracts`
+- **Parameter details**:
+  - `address`: Wallet address to inspect. Must be a `0x`-prefixed 20-byte hex address.
+  - `tokenContracts`: Optional ERC-20 contract addresses to query with `balanceOf`.
+  - `rpcUrl`: Override the Ethereum RPC endpoint. Defaults to `ETHEREUM_RPC_URL` or `https://ethereum-rpc.publicnode.com`.
 
 ### mcp_ado_get_bitcoin_balance
 
@@ -162,6 +186,10 @@ Get BTC balance for a Bitcoin address.
 
 - **Required**: `address`
 - **Optional**: `apiBaseUrl`, `includeMempool`
+- **Parameter details**:
+  - `address`: Bitcoin address to inspect.
+  - `includeMempool`: Include unconfirmed mempool deltas in the returned balance when `true`.
+  - `apiBaseUrl`: Override the Bitcoin API base URL. Defaults to `BITCOIN_API_BASE_URL` or `https://blockstream.info/api`.
 
 ### mcp_ado_query_all_balances
 
@@ -169,6 +197,14 @@ Aggregate Coinbase, Ethereum, and Bitcoin balances for Pamela Menopool workflows
 
 - **Required**: None
 - **Optional**: `includeCoinbase`, `ethereumAddress`, `ethereumTokenContracts`, `bitcoinAddress`, `includeBitcoinMempool`, `coinbaseBaseUrl`, `ethereumRpcUrl`, `bitcoinApiBaseUrl`, `includeZeroCoinbaseBalances`
+- **Parameter details**:
+  - `includeCoinbase`: Attempt the Coinbase query when credentials are configured.
+  - `ethereumAddress`: Optional wallet to inspect for native ETH and ERC-20 balances.
+  - `ethereumTokenContracts`: Optional ERC-20 contract list paired with `ethereumAddress`.
+  - `bitcoinAddress`: Optional BTC address to inspect.
+  - `includeBitcoinMempool`: Include pending BTC deltas when `true`.
+  - `coinbaseBaseUrl`, `ethereumRpcUrl`, `bitcoinApiBaseUrl`: Optional per-source endpoint overrides.
+  - `includeZeroCoinbaseBalances`: Include zero-balance Coinbase assets when `true`.
 
 ### mcp_ado_next_string_to_payout
 
@@ -176,6 +212,13 @@ Generate a normalized payout instruction string for Pamela Menopool payout workf
 
 - **Required**: `amount`, `currency`, `recipient`
 - **Optional**: `network`, `memo`, `reference`
+- **Parameter details**:
+  - `amount`: Positive decimal string such as `0.5`, `25`, or `1234.56`.
+  - `currency`: Asset or fiat symbol, for example `BTC`, `ETH`, `USDC`, or `USD`.
+  - `recipient`: Wallet address, exchange destination, or payout account identifier.
+  - `network`: Optional network or chain label such as `bitcoin`, `ethereum`, or `base`.
+  - `memo`: Optional memo or destination tag.
+  - `reference`: Optional payout reference identifier.
 
 ### mcp_ado_pull_coins_contract_and_run_with_payout
 
@@ -183,6 +226,14 @@ Pull ERC-20 contract balance for an address and build a normalized payout instru
 
 - **Required**: `address`, `tokenContract`, `recipient`, `currency`
 - **Optional**: `amount`, `network`, `memo`, `reference`, `rpcUrl`
+- **Parameter details**:
+  - `address`: Wallet address to query. Must be a `0x`-prefixed 20-byte hex address.
+  - `tokenContract`: ERC-20 contract address to inspect.
+  - `recipient`: Wallet address, exchange destination, or payout account identifier.
+  - `currency`: Asset or fiat symbol to use in the generated payout string.
+  - `amount`: Optional override for the payout amount. When omitted, the tool uses the pulled contract balance.
+  - `network`, `memo`, `reference`: Optional payout metadata copied into the normalized payout string.
+  - `rpcUrl`: Override the Ethereum RPC endpoint for the contract lookup.
 
 ## Pipelines
 

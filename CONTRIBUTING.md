@@ -32,11 +32,25 @@ We’re currently accepting a limited number of pull requests, provided they fol
 
 Please include tests with your pull request. Pull requests will not be accepted until all relevant tests are updated and passing.
 
-Code formatting is enforced by CI checks. Run `npm run format` to ensure your changes comply with the rules.
+Code formatting is enforced by CI checks. Run `npm run format` for formatted changes, or `npm run format-check` to verify formatting without rewriting files.
 
 ### Testing
 
 This project uses Jest with `ts-jest` for testing TypeScript code. Tests are located in the `test/` directory and mirror the structure of the `src/` directory.
+
+Before opening a pull request, run the same core checks that the repository uses in local validation:
+
+```bash
+npm run eslint .
+npm run build
+npm test
+```
+
+If you change tool names or tool parameters, also run:
+
+```bash
+npm run validate-tools
+```
 
 #### Running Tests
 
@@ -65,7 +79,12 @@ Key features of our test configuration:
 
 ## 🖊️ Coding style
 
-Follow the established patterns and styles in the repository. If you have suggestions for improvements, please open a new issue for discussion.
+Follow the established patterns and styles in the repository. In practice, that means:
+
+- Keep tools focused and close to the underlying Azure DevOps API scenario they represent.
+- Prefer existing utilities, schemas, and response-shaping patterns over introducing parallel abstractions.
+- Add or update tests for behavior changes in `src/`.
+- Update the relevant documentation when tool behavior, setup, or authentication guidance changes.
 
 ## 📑 Documentation
 
@@ -101,4 +120,4 @@ You can examine these logs at the `output` panel under `MCP:ado` (or whatever na
 
 ## 🤝 Code of conduct
 
-You can find our code of conduct at the [Code of Conduct](./CODE_OF_CONDUCT.md) as a guideline for expected behavior in also at the contributions here. Please take a moment to review it before contributing.
+You can find our code of conduct in [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md). Please review it before contributing.

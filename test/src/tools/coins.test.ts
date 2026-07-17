@@ -37,6 +37,13 @@ describe("configureCoinsTools", () => {
   it("registers coin tools", () => {
     configureCoinsTools(server);
     expect(server.tool).toHaveBeenCalledTimes(6);
+    expect((server.tool as jest.Mock).mock.calls).toEqual(
+      expect.arrayContaining([
+        expect.arrayContaining(["get_coinbase_balance", expect.stringContaining("optional Pamela Menopool coins domain")]),
+        expect.arrayContaining(["query_all_balances", expect.stringContaining("optional Pamela Menopool coins domain")]),
+        expect.arrayContaining(["next_string_to_payout", expect.stringContaining("optional coins domain")]),
+      ])
+    );
   });
 
   it("get_coinbase_balance returns filtered balances", async () => {

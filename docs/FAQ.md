@@ -20,7 +20,21 @@ Yes! Personal Access Tokens (PATs) are supported via the `pat` authentication ty
 
 ## Is there a remote supported version of the MCP Server?
 
-At this time, only the local version of the MCP Server is supported.
+Yes. The Azure DevOps Remote MCP Server is available in public preview. For the recommended hosted setup, see the [Remote MCP Server section in the README](../README.md#-remote-mcp-server-recommended).
+
+## Which setup should I choose: remote or local?
+
+Start with the remote server unless you specifically need a local `stdio` process, client-side domains, or custom local authentication behavior. If you need the local server, follow the [Quick Start](../README.md#-quick-start) and [Getting Started](./GETTINGSTARTED.md) guides.
+
+## What environment variables do I need for local setup?
+
+That depends on the authentication mode:
+
+- `interactive` and `azcli`: no required server-specific environment variables
+- `envvar`: set `ADO_MCP_AUTH_TOKEN`
+- `pat`: set `PERSONAL_ACCESS_TOKEN` to the base64-encoded `<email>:<pat>` value
+
+The optional `coins` domain also uses its own environment variables such as `COINBASE_API_KEY`, `COINBASE_API_SECRET`, `COINBASE_API_PASSPHRASE`, `ETHEREUM_RPC_URL`, and `BITCOIN_API_BASE_URL`.
 
 ## Are personal accounts supported?
 
@@ -30,4 +44,8 @@ Unfortunately, personal accounts are not supported. To maintain a higher level o
 
 ## When will a remote Azure DevOps MCP Server be available?
 
-We receive this question frequently. The good news is that work is currently underway. Development began in early January 2026. Once we can provide a reliable timeline, we will publish it on the public [Azure DevOps roadmap](https://learn.microsoft.com/en-us/azure/devops/release-notes/features-timeline).
+The remote server is already available in public preview. Use the hosted configuration from the [README](../README.md#-remote-mcp-server-recommended) for the simplest onboarding path.
+
+## What is the `coins` domain for?
+
+The `coins` domain is an optional Pamela Menopool extension that adds cryptocurrency balance and payout helpers. It is not required for regular Azure DevOps usage, so most users can leave it disabled.
